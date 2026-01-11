@@ -1,90 +1,106 @@
-# React + Vite + Hono + Cloudflare Workers
+# Feedback Analyzer
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/vite-react-template)
+AI-powered feedback aggregation and analysis tool for Product Managers.
 
-This template provides a minimal setup for building a React application with TypeScript and Vite, designed to run on Cloudflare Workers. It features hot module replacement, ESLint integration, and the flexibility of Workers deployments.
+## What It Does
 
-![React + TypeScript + Vite + Cloudflare Workers](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/fc7b4b62-442b-4769-641b-ad4422d74300/public)
+Feedback Analyzer helps PMs make sense of noisy user feedback by:
 
-<!-- dash-content-start -->
+1. **Aggregating feedback** from multiple sources (email, Twitter, Reddit)
+2. **AI analysis** using Workers AI (Llama 3.1) to extract:
+   - Theme (what the feedback is about)
+   - Sentiment (positive/negative/neutral)
+   - Urgency (high/medium/low)
+   - Summary (one-line description)
+3. **Generating insights** with AI-powered executive summaries
+4. **Automated notifications** via Discord webhook
 
-🚀 Supercharge your web development with this powerful stack:
+## Architecture
 
-- [**React**](https://react.dev/) - A modern UI library for building interactive interfaces
-- [**Vite**](https://vite.dev/) - Lightning-fast build tooling and development server
-- [**Hono**](https://hono.dev/) - Ultralight, modern backend framework
-- [**Cloudflare Workers**](https://developers.cloudflare.com/workers/) - Edge computing platform for global deployment
+```
+┌──────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│   D1 (DB)    │────▶│  Workers AI (AI) │────▶│    Workflows     │
+│              │     │                  │     │                  │
+│ feedback     │     │ Llama 3.1 8B     │     │ Step 1: Fetch    │
+│ table        │     │ - sentiment      │     │ Step 2: Summarize│
+│              │     │ - theme          │     │ Step 3: Discord  │
+└──────────────┘     │ - urgency        │     └──────────────────┘
+                     └──────────────────┘
+```
 
-### ✨ Key Features
+## Cloudflare Services Used
 
-- 🔥 Hot Module Replacement (HMR) for rapid development
-- 📦 TypeScript support out of the box
-- 🛠️ ESLint configuration included
-- ⚡ Zero-config deployment to Cloudflare's global network
-- 🎯 API routes with Hono's elegant routing
-- 🔄 Full-stack development setup
-- 🔎 Built-in Observability to monitor your Worker
-
-Get started in minutes with local development or deploy directly via the Cloudflare dashboard. Perfect for building modern, performant web applications at the edge.
-
-<!-- dash-content-end -->
+| Service | Purpose |
+|---------|---------|
+| **Workers** | API endpoints and static asset serving |
+| **D1** | SQL database for feedback storage |
+| **Workers AI** | Llama 3.1 for sentiment analysis and summarization |
+| **Workflows** | Multi-step digest pipeline to Discord |
 
 ## Getting Started
 
-To start a new project with this template, run:
-
-```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/vite-react-template
-```
-
-A live deployment of this template is available at:
-[https://react-vite-template.templates.workers.dev](https://react-vite-template.templates.workers.dev)
-
-## Development
-
-Install dependencies:
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-Start the development server with:
+### 2. Run database migrations
+
+```bash
+npx wrangler d1 execute feedback_db --local --file=migrations/0001_init.sql
+npx wrangler d1 execute feedback_db --local --file=migrations/0002_add_source.sql
+```
+
+### 3. Start development server
 
 ```bash
 npm run dev
 ```
 
-Your application will be available at [http://localhost:5173](http://localhost:5173).
+Open [http://localhost:5173](http://localhost:5173)
 
-## Production
+## Configuration
 
-Build your project for production:
+### Discord Webhook (Optional)
+
+To enable automated Discord notifications:
+
+1. Create a webhook in your Discord server (Server Settings → Integrations → Webhooks)
+2. Add to `wrangler.json`:
+
+```json
+"vars": {
+  "DISCORD_WEBHOOK_URL": "https://discord.com/api/webhooks/..."
+}
+```
+
+Or use secrets for production:
+
+```bash
+npx wrangler secret put DISCORD_WEBHOOK_URL
+```
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/feedback` | GET | List all feedback items |
+| `/api/analyze` | POST | Analyze a single feedback item with AI |
+| `/api/summary` | POST | Generate executive summary |
+| `/api/send-digest` | POST | Trigger Discord workflow |
+
+## Deployment
 
 ```bash
 npm run build
+npx wrangler deploy
 ```
 
-Preview your build locally:
+## Tech Stack
 
-```bash
-npm run preview
-```
-
-Deploy your project to Cloudflare Workers:
-
-```bash
-npm run build && npm run deploy
-```
-
-Monitor your workers:
-
-```bash
-npx wrangler tail
-```
-
-## Additional Resources
-
-- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
-- [Vite Documentation](https://vitejs.dev/guide/)
-- [React Documentation](https://reactjs.org/)
-- [Hono Documentation](https://hono.dev/)
+- **Frontend**: React + Vite + TypeScript
+- **Backend**: Cloudflare Workers + Hono
+- **Database**: Cloudflare D1
+- **AI**: Cloudflare Workers AI (Llama 3.1 8B)
+- **Automation**: Cloudflare Workflows
