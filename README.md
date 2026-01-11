@@ -92,10 +92,21 @@ npx wrangler secret put DISCORD_WEBHOOK_URL
 
 ## Deployment
 
+### 1. Build and deploy
+
 ```bash
 npm run build
 npx wrangler deploy
 ```
+
+### 2. Run migrations on production D1
+
+```bash
+npx wrangler d1 execute feedback_db --remote --file=migrations/0001_init.sql
+npx wrangler d1 execute feedback_db --remote --file=migrations/0002_add_source.sql
+```
+
+> **Note**: `--local` = your machine, `--remote` = Cloudflare production
 
 ## Tech Stack
 
