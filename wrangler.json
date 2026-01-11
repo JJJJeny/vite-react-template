@@ -3,13 +3,36 @@
 	"name": "vite-react-template",
 	"main": "./src/worker/index.ts",
 	"compatibility_date": "2025-10-08",
-	"compatibility_flags": ["nodejs_compat"],
 	"observability": {
 		"enabled": true
 	},
 	"upload_source_maps": true,
 	"assets": {
 		"directory": "./dist/client",
-		"not_found_handling": "single-page-application"
+		"not_found_handling": "single-page-application",
+		"binding": "ASSETS",
+		"run_worker_first": [
+			"/api/*"
+		]
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "feedback_db",
+			"database_id": "075240d1-3f6e-479f-855b-aff399f85b19"
+		}
+	],
+	"ai": {
+		"binding": "AI"
+	},
+	"workflows": [
+		{
+			"name": "feedback-digest",
+			"binding": "DIGEST_WORKFLOW",
+			"class_name": "DigestWorkflow"
+		}
+	],
+	"vars": {
+		"DISCORD_WEBHOOK_URL": ""
 	}
 }
